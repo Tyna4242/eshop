@@ -1,0 +1,86 @@
+"""
+Principle:
+    Open - We want to have code open to extensions - we should be able to easily extend our code with new functionality.
+    Closed - We want it to be closed for modifications - we should not need to modify original code to add extensions.
+
+Reasoning:
+    The main idea of this principle is to keep existing code from breaking when you implement new features.
+
+Current problems:
+    The class Payment is hard to extend - if we want to add new payment method, we have to modify the whole class.
+"""
+from abc import ABC, abstractmethod
+
+
+class Order:
+    ALLOWED_STATUSES = ("open", "paid", "closed")
+
+    def __init__(self):
+        self._items = []
+        self._quantities = []
+        self._prices = []
+        self._status = "open"
+
+    def add_item(self, name: str, quantity: int, price: int):
+        self._items.append(name)
+        self._quantities.append(quantity)
+        self._prices.append(price)
+
+    def get_total_price(self):
+        total = 0
+        for i in range(len(self._prices)):
+            total += self._quantities[i] * self._prices[i]
+        return total
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, order_status: str):
+        if order_status in self.ALLOWED_STATUSES:
+            self._status = order_status
+            print(f"Order status is '{order_status}' now!")
+        else:
+            raise Exception("Unknown order status!")
+
+
+class PaymentProcessor(ABC):
+    @abstractmethod
+    def pay_order(self, order: Order, security_code: str):
+        pass
+
+
+class DebitPaymentProcessor(PaymentProcessor):
+    def pay_order(self, order: Order, security_code: str):
+        print("Processing debit payment type!")
+        print(f"Verifying security code: {security_code}!")
+        order.status = "paid"
+
+
+class CreditPaymentProcessor(PaymentProcessor):
+
+    def pay_order(self, order: Order, security_code: str):
+        print("Processing credit payment type!")
+        print(f"Verifying security code: {security_code}!")
+        order.status = "paid"
+
+
+class PaypalPaymentProcessor(PaymentProcessor):
+
+    def pay_order(self, order: Order, security_code: str):
+        print("Processing Paypal payment type!")
+        print(f"Verifying security code: {security_code}!")
+        order.status = "paid"
+
+
+order = Order()
+order.add_item("Keyboard", 1, 50)
+order.add_item("SSD", 1, 150)
+order.add_item("USB cable", 2, 5)
+
+print(f"Order total price is: {order.get_total_price()}")
+print(f"Orders status: {order.status}")
+processor = DebitPaymentProcessor()
+processor.pay_order(order, security_code="0372846")
+print(f"Orders status: {order.status}")
